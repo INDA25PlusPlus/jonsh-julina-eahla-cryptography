@@ -10,9 +10,18 @@ use std::fs;
 
 
 
-fn encrypt_file(cipher: &Aes256Gcm, file_path: &str) {
+fn encrypt_file(cipher: &Aes256Gcm, file_path: &str) -> Vec<u8> {
 
-    
+    let plaintext = fs::read(file_path).expect("Failed to read file");
+
+    // unique nonce for each encryption, 96 bits
+    let nonce = Aes256Gcm::generate_nonce(&mut OsRng);
+    let ciphertext = cipher.encrypt(&nonce, plaintext.as_ref()).expect("Encryption failed");
+
+    let mut output_vec = nonce.to_vec();
+    output_vec.extend_from_slice(&ciphertext);
+
+    return output_vec;
 
 }
 
@@ -21,6 +30,7 @@ fn encrypt_file(cipher: &Aes256Gcm, file_path: &str) {
 
 
 fn main() -> std::io::Result<()> {
+
 
     let mut stream = match TcpStream::connect("127.0.0.1:8080") {
 
@@ -42,6 +52,9 @@ fn main() -> std::io::Result<()> {
     // create encryption key -- same used througout
     let key =  Aes256Gcm::generate_key(OsRng);
     let cipher = Aes256Gcm::new(&key);
+
+    let file_id = 0;
+
 
     
 
