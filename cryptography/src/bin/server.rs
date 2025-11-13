@@ -7,7 +7,7 @@ struct Metadata {
     file_id: u64,
 }
 
-fn read_tcp_message(mut stream: TcpStream) -> std::io::Result<()> {
+fn read_tcp_message(stream: &mut TcpStream) -> std::io::Result<()> {
     // Format på meddelande:
     // [metadata length: 4 bytes]
     // [metadata JSON]
@@ -40,11 +40,19 @@ fn read_tcp_message(mut stream: TcpStream) -> std::io::Result<()> {
 
     // Spara {file_id: ciphertext_bytes} på nåt smart sätt
 
+    // Spara i merkelträd!
+
+    // add to merkelträd
+
+    // eller hämta från merkelträd
+
     Ok(())
 }
 
-fn handle_client(stream: TcpStream) -> std::io::Result<()> {
-    read_tcp_message(stream)?;
+fn handle_client(mut stream: TcpStream) -> std::io::Result<()> {
+    loop {
+        read_tcp_message(&mut stream)?;
+    }
 
     Ok(())
 }
@@ -52,6 +60,8 @@ fn handle_client(stream: TcpStream) -> std::io::Result<()> {
 fn main() -> std::io::Result<()> {
     let listener = TcpListener::bind("127.0.0.1:8080").expect("Failed to listen on port --");
     println!("Listening on port --");
+
+    // skapa tomt merkelträd?
 
     for stream in listener.incoming() {
         handle_client(stream?)?;
