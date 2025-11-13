@@ -99,7 +99,7 @@ fn send_encrypted_file(mut stream: &TcpStream, cipher: &Aes256Gcm, file_path: &s
 fn client_loop(stream: TcpStream, cipher: &Aes256Gcm) -> std::io::Result<()> {
 
     let mut file_id: u64 = 0;
-    let base_path = PathBuf::from("src/example-files");
+    let base_path = PathBuf::from("example-files");
 
     loop {
         let mut input = String::new();
