@@ -4,7 +4,7 @@ use std::net::{TcpListener, TcpStream};
 
 #[derive(serde::Deserialize, Debug)]
 struct Metadata {
-    file_id: u32,
+    file_id: u64,
 }
 
 fn read_tcp_message(mut stream: TcpStream) -> std::io::Result<()> {

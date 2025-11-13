@@ -89,6 +89,11 @@ fn send_encrypted_file(mut stream: &TcpStream, cipher: &Aes256Gcm, file_path: &s
     let metadata_bytes = metadata_json.as_bytes();
     let metadata_len = metadata_bytes.len() as u32;
 
+    println!("{:?}", &metadata_len.to_be_bytes());
+    println!("{:?}", metadata_bytes);
+    println!("{:?}", &encrypted_len.to_be_bytes());
+    println!("{:?}", &encrypted_bytes);
+
     stream.write_all(&metadata_len.to_be_bytes())?;
     stream.write_all(metadata_bytes)?;
     stream.write_all(&encrypted_len.to_be_bytes())?;
