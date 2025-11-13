@@ -1,12 +1,14 @@
+use std::collections::HashMap;
 use std::net::TcpStream;
 use std::io::{stdin, stdout, Read, Write};
+use serde_json;
 
 use aes_gcm::aes::cipher;
 use aes_gcm::{
     aead::{Aead, AeadCore, KeyInit, OsRng},
     Aes256Gcm, Nonce, Key // Or `Aes128Gcm`
 };
-use std::fs;
+use std::fs::{self, Metadata};
 use std::path::{Path, PathBuf};
 
 
@@ -75,13 +77,35 @@ fn decrypt_file(cipher: &Aes256Gcm, ciphertext_vec: Vec<u8>) -> (String, Vec<u8>
 }
 
 
+
+fn send_encrypted_file(mut stream: &TcpStream, cipher: &Aes256Gcm, file_path: &str, file_id: u64) -> std::io::Result<()> {
+
+    let encrypted_bytes = encrypt_file(cipher, file_path);
+    let encrypted_len = encrypted_bytes.len() as u32;
+
+    let mut metadata = HashMap::new();
+    metadata.insert("file_id", file_id);
+
+    let metadata_json = serde_json::to_string(&metadata)?;
+    let metadata_bytes = metadata_json.as_bytes();
+    let metadata_len = metadata_bytes.len() as u32;
+
+    stream.write_all(&metadata_len.to_be_bytes())?;
+    stream.write_all(metadata_bytes)?;
+    stream.write_all(&encrypted_len.to_be_bytes())?;
+    stream.write_all(&encrypted_bytes)?;
+
+    Ok(())
+}
+
 fn client_loop(stream: TcpStream, cipher: &Aes256Gcm) -> std::io::Result<()> {
 
+    let mut file_id: u64 = 0;
     let base_path = PathBuf::from("example-files");
 
     loop {
         let mut input = String::new();
-        println!("Enter filename in /example-files to encrypt (eg. example.txt) or q / quit to exit");
+        println!("Enter filename in /example-files to encrypt (eg. example.txt) or q / quit to exit"); // Add option to enter file that client wants to retrieve from server
 
         let _=stdout().flush();
         stdin().read_line(&mut input).expect("Did not enter a correct string");
@@ -97,14 +121,11 @@ fn client_loop(stream: TcpStream, cipher: &Aes256Gcm) -> std::io::Result<()> {
             continue;
         }
 
+        let file_path_str = file_path.to_str().unwrap();
 
-        let encrypted_file = encrypt_file(cipher, file_path.to_str().unwrap());
+        send_encrypted_file(&stream, &cipher, file_path_str, file_id)?;
 
-
-
-
-
-
+        file_id += 1;
             
         };
 
@@ -129,10 +150,10 @@ fn main() -> std::io::Result<()> {
         } 
      };
 
-    stream.write(&[1])?;
+    // stream.write(&[1])?;
 
-    let msg_package = stream.read(&mut [0; 128])?;
-    println!("{}", msg_package);
+    // let msg_package = stream.read(&mut [0; 128])?;
+    // println!("{}", msg_package);
 
     // create encryption key -- same used througout
     let key =  Aes256Gcm::generate_key(OsRng);
