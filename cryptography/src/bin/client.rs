@@ -99,18 +99,21 @@ fn send_encrypted_file(mut stream: &TcpStream, cipher: &Aes256Gcm, file_path: &s
 fn client_loop(stream: TcpStream, cipher: &Aes256Gcm) -> std::io::Result<()> {
 
     let mut file_id: u64 = 0;
-    let base_path = PathBuf::from("example-files");
+    let base_path = PathBuf::from("src/example-files");
 
     loop {
         let mut input = String::new();
-        println!("Enter filename in /example-files to encrypt (eg. example.txt) or q / quit to exit"); // Add option to enter file that client wants to retrieve from server
+        println!("Enter filename in /example-files to encrypt (eg. example.txt) or \n
+                enter file_id to decrypt or enter q / quit to exit"); // Add option to enter file that client wants to retrieve from server
 
         let _=stdout().flush();
         stdin().read_line(&mut input).expect("Did not enter a correct string");
+        let input = input.trim(); 
 
         if input == "q" || input == "quit" {
             break;
         }
+
 
         let file_path = base_path.join(input);
 
@@ -122,6 +125,8 @@ fn client_loop(stream: TcpStream, cipher: &Aes256Gcm) -> std::io::Result<()> {
         let file_path_str = file_path.to_str().unwrap();
 
         send_encrypted_file(&stream, &cipher, file_path_str, file_id)?;
+
+        println!("Successfully sent encrypted file {} to server\n\n", file_id);
 
         file_id += 1;
             
