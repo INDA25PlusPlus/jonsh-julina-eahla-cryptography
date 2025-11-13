@@ -99,12 +99,13 @@ fn send_encrypted_file(mut stream: &TcpStream, cipher: &Aes256Gcm, file_path: &s
 }
 
 
-fn handle_encrypt_send(stream: TcpStream, cipher: &Aes256Gcm) {
+fn handle_encrypt_send(stream: &TcpStream, cipher: &Aes256Gcm) -> std::io::Result<()> {
 
     let base_path = PathBuf::from("example-files");
 
     loop {
         let mut input = String::new();
+        println!("\n");
         println!("Enter filename in /example-files to encryptq / quit to exit");
 
         let _=stdout().flush();
@@ -125,7 +126,7 @@ fn handle_encrypt_send(stream: TcpStream, cipher: &Aes256Gcm) {
         }
 
         let file_path_str = file_path.to_str().unwrap();
-        let mut file_id = rand::random();
+        let file_id = rand::random();
 
         send_encrypted_file(&stream, &cipher, file_path_str, file_id)?;
 
@@ -135,10 +136,13 @@ fn handle_encrypt_send(stream: TcpStream, cipher: &Aes256Gcm) {
             
     };
 
+    Ok(())
+
 }
 
-fn handle_decrypt_request() {
+fn handle_decrypt_request(stream: &TcpStream, cipher: &Aes256Gcm) -> std::io::Result<()> {
 
+    Ok(())
     
 }
 
@@ -164,15 +168,20 @@ fn client_loop(stream: TcpStream, cipher: &Aes256Gcm) -> std::io::Result<()> {
 
         match choice {
 
-            "1" => handle_encrypt_send(stream, cipher),
-            "2" => handle_encrypt_send(stream, cipher),
+            "1" => handle_encrypt_send(&stream, cipher),
+            "2" => handle_encrypt_send(&stream, cipher),
             "q" | "quit" => {
                 println!("Exiting...");
                 break;
             }
 
-            _ => println!("Invalid choice. Please try again:))))))"),
-        };
+            _ => {
+                println!("Invalid choice. Please try again:))))))");
+                continue;
+
+            }
+
+        }?;
     };
 
     Ok(())
