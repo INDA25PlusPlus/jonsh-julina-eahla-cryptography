@@ -35,6 +35,9 @@ fn read_tcp_message(mut stream: TcpStream) -> std::io::Result<()> {
     let mut ciphertext_bytes = vec![0u8; ciphertext_len as usize];
     stream.read_exact(&mut ciphertext_bytes)?;
 
+
+    println!("Successfully received encrypted file {} from client\n\n", file_id);
+
     // Spara {file_id: ciphertext_bytes} på nåt smart sätt
 
     Ok(())
