@@ -1,5 +1,5 @@
 use std::net::TcpStream;
-use std::io::{Read, Write};
+use std::io::{stdin, stdout, Read, Write};
 
 use aes_gcm::aes::cipher;
 use aes_gcm::{
@@ -7,7 +7,7 @@ use aes_gcm::{
     Aes256Gcm, Nonce, Key // Or `Aes128Gcm`
 };
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 
 fn build_plaintext(file_path: &str) -> std::io::Result<Vec<u8>> {
@@ -75,6 +75,41 @@ fn decrypt_file(cipher: &Aes256Gcm, ciphertext_vec: Vec<u8>) -> (String, Vec<u8>
 }
 
 
+fn client_loop(stream: TcpStream, cipher: &Aes256Gcm) -> std::io::Result<()> {
+
+    let base_path = PathBuf::from("example-files");
+
+    loop {
+        let mut input = String::new();
+        println!("Enter filename in /example-files to encrypt (eg. example.txt) or q / quit to exit");
+
+        let _=stdout().flush();
+        stdin().read_line(&mut input).expect("Did not enter a correct string");
+
+        if input == "q" || input == "quit" {
+            break;
+        }
+
+        let file_path = base_path.join(input);
+
+        if !file_path.exists() {
+            eprintln!("File not found: {:?}", file_path);
+            continue;
+        }
+
+
+        let encrypted_file = encrypt_file(cipher, file_path.to_str().unwrap());
+
+
+
+
+
+
+            
+        };
+
+    Ok(())
+    }
 
 
 
@@ -102,11 +137,10 @@ fn main() -> std::io::Result<()> {
     // create encryption key -- same used througout
     let key =  Aes256Gcm::generate_key(OsRng);
     let cipher = Aes256Gcm::new(&key);
-    let file_id = 0;
 
-    
-    
-    
+
+    client_loop(stream, &cipher)?;
+
 
     Ok(())
 
