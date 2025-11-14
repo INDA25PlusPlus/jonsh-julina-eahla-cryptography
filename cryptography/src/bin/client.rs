@@ -1,17 +1,15 @@
 use std::collections::HashMap;
 use std::net::TcpStream;
 use std::io::{stdin, stdout, Read, Write};
-use serde_json::{self, value};
+use serde_json::{self};
 use rand;
 
-use aes_gcm::aes::cipher;
 use aes_gcm::{
     Aes256Gcm,
-    Key, // Or `Aes128Gcm`
     Nonce,
     aead::{Aead, AeadCore, KeyInit, OsRng},
 };
-use std::fs::{self, Metadata};
+use std::fs::{self};
 use std::path::{Path, PathBuf};
 
 
@@ -99,7 +97,7 @@ fn decrypt_file(cipher: &Aes256Gcm, ciphertext_vec: Vec<u8>) -> std::io::Result<
     let path = base.join(&filename);
     fs::write(&path, &file_content)?;
 
-    println!("Successfully saved decrypted fiile {filename} in /downloads");
+    println!("Successfully saved decrypted file {filename} in /downloads");
 
     Ok(())
 }
@@ -146,7 +144,7 @@ fn handle_encrypt_send(stream: &mut TcpStream, cipher: &Aes256Gcm, file_index: &
     loop {
         let mut input = String::new();
         println!("\n");
-        println!("Enter filename in /example-files to encryptq / quit to exit");
+        println!("Enter filename in /example-files to encrypt or q / quit to exit");
 
         let _=stdout().flush();
         stdin().read_line(&mut input).expect("Did not enter a correct string");
@@ -172,7 +170,7 @@ fn handle_encrypt_send(stream: &mut TcpStream, cipher: &Aes256Gcm, file_index: &
 
         file_index.insert(input.to_string(), file_id);
 
-        println!("Successfully sent encrypted file {} to server\n\n", file_id);
+        println!("Successfully sent encrypted {input} to server with id {file_id}\n\n");
 
         break;
             
@@ -190,7 +188,7 @@ fn handle_decrypt_request(stream: &mut TcpStream, cipher: &Aes256Gcm, file_index
 
         let mut input = String::new();
         println!("Files saved in server:");
-        for (key, value) in file_index.iter() {
+        for (key, _value) in file_index.iter() {
             println!("{}", key);
         }
         println!("--------------");
@@ -306,7 +304,7 @@ fn client_loop(mut stream: TcpStream, cipher: &Aes256Gcm) -> std::io::Result<()>
 
 
 fn main() -> std::io::Result<()> {
-    let mut stream = match TcpStream::connect("127.0.0.1:8080") {
+    let stream = match TcpStream::connect("127.0.0.1:8080") {
         Ok(stream) => {
             println!("Connected to the server!");
             stream

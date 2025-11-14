@@ -9,7 +9,7 @@
     }
 
 
-    fn handle_encrypted_msg(mut stream: &mut TcpStream, saved_encrypted_files: &mut HashMap<u64, Vec<u8>>) -> std::io::Result<()> {
+    fn handle_encrypted_msg(stream: &mut TcpStream, saved_encrypted_files: &mut HashMap<u64, Vec<u8>>) -> std::io::Result<()> {
 
 
     
