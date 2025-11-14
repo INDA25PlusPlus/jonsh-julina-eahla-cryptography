@@ -1,6 +1,18 @@
+use crypto::MerkleTree;
 use serde_json;
 use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
+use std::cell::RefCell;
+
+thread_local! {
+    pub static MERKLE_TREE: RefCell<MerkleTree> = RefCell::new(MerkleTree::new());
+}
+
+fn add_node(file_id: u64, data: Vec<u8>) {
+    MERKLE_TREE.with(|tree| {
+        tree.borrow_mut().add_leaf_node(data, file_id);
+    })
+}
 
 #[derive(serde::Deserialize, Debug)]
 struct Metadata {
@@ -41,8 +53,8 @@ fn read_tcp_message(stream: &mut TcpStream) -> std::io::Result<()> {
     // Spara {file_id: ciphertext_bytes} på nåt smart sätt
 
     // Spara i merkelträd!
-
     // add to merkelträd
+    add_node(file_id, ciphertext_bytes);
 
     // eller hämta från merkelträd
 
@@ -60,8 +72,6 @@ fn handle_client(mut stream: TcpStream) -> std::io::Result<()> {
 fn main() -> std::io::Result<()> {
     let listener = TcpListener::bind("127.0.0.1:8080").expect("Failed to listen on port --");
     println!("Listening on port --");
-
-    // skapa tomt merkelträd?
 
     for stream in listener.incoming() {
         handle_client(stream?)?;
